@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>██▓ 设备终端控制台 ▓██ - kamori.3vzhuji.cn</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --neon-green: #00ff41;
+            --matrix-green: #00cc33;
+            --dark-green: #003b00;
+            --black: #0a0a0a;
+            --terminal-bg: #001100;
+            --glow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green), 0 0 30px var(--neon-green);
+        }
+        
+        body {
+            font-family: 'Courier New', 'Monaco', monospace;
+            background: var(--black);
+            color: var(--neon-green);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* ASCII艺术边框 */
+        .ascii-border {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+            color: var(--matrix-green);
+            opacity: 0.7;
+            font-size: 12px;
+        }
+        
+        .border-top { top: 0; left: 0; right: 0; height: 30px; overflow: hidden; }
+        .border-bottom { bottom: 0; left: 0; right: 0; height: 30px; overflow: hidden; }
+        .border-left { left: 0; top: 30px; bottom: 30px; width: 30px; }
+        .border-right { right: 0; top: 30px; bottom: 30px; width: 30px; }
+        
+        /* 背景矩阵雨效果 */
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.05;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* 终端标题 */
+        .terminal-title {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            padding: 25px;
+            border: 1px solid var(--neon-green);
+            box-shadow: var(--glow);
+            background: rgba(0, 20, 0, 0.8);
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 10px var(--neon-green); }
+            50% { box-shadow: 0 0 20px var(--neon-green), 0 0 30px var(--matrix-green); }
+        }
+        
+        .ascii-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px currentColor;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: var(--matrix-green);
+            margin-top: 10px;
+        }
+        
+        /* 状态监视器 */
+        .status-monitor {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .monitor-panel {
+            background: rgba(0, 30, 0, 0.7);
+            border: 1px solid var(--matrix-green);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .monitor-panel::before {
+            content: '█▓▒░';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 10px;
+            color: var(--neon-green);
+            opacity: 0.5;
+        }
+        
+        .panel-title {
+            color: var(--neon-green);
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px dotted var(--matrix-green);
+            padding-bottom: 5px;
+        }
+        
+        .status-line {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .status-value {
+            color: #00ff9d;
+            font-weight: bold;
+            text-shadow: 0 0 5px currentColor;
+        }
+        
+        /* 终端容器 */
+        .ascii-terminal {
+            position: relative;
+            border: 2px solid var(--neon-green);
+            box-shadow: var(--glow);
+            height: 600px;
+            background: var(--terminal-bg);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .terminal-header {
+            background: linear-gradient(90deg, #001a00, #003300);
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--neon-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--neon-green);
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .header-ascii {
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        
+        .header-tabs {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .tab {
+            padding: 5px 15px;
+            border: 1px solid var(--matrix-green);
+            background: rgba(0, 50, 0, 0.3);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: var(--matrix-green);
+            color: var(--black);
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+        
+        .terminal-frame {
+            width: 100%;
+            height: calc(100% - 60px);
+            border: none;
+            background: #000;
+        }
+        
+        /* 控制面板 */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .control-button {
+            background: linear-gradient(45deg, #002200, #004400);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-button:hover {
+            box-shadow: var(--glow);
+            transform: translateY(-2px);
+            background: linear-gradient(45deg, #003300, #005500);
+        }
+        
+        .control-button::after {
+            content: '»';
+            position: absolute;
+            right: 15px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .control-button:hover::after {
+            opacity: 1;
+            right: 10px;
+        }
+        
+        /* 扫描线效果 */
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+            animation: scan 3s linear infinite;
+            z-index: 10;
+            opacity: 0.3;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        
+        /* 状态指示灯 */
+        .led {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: blink 2s infinite;
+            vertical-align: middle;
+        }
+        
+        .led-green {
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+        
+        .led-red {
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+            animation: blink-fast 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        @keyframes blink-fast {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .ascii-terminal {
+                height: 500px;
+            }
+            
+            .ascii-title {
+                font-size: 18px;
+            }
+            
+            .status-monitor {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 键盘快捷键提示 */
+        .key-hint {
+            font-size: 11px;
+            color: var(--matrix-green);
+            margin-top: 5px;
+        }
+        
+        /* 终端输出模拟 */
+        .terminal-output {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            color: var(--matrix-green);
+            opacity: 0.6;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <!-- 矩阵雨背景 -->
+    <canvas id="matrixCanvas" class="matrix-rain"></canvas>
+    
+    <!-- ASCII边框 -->
+    <div class="ascii-border border-top">
+        ░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+    </div>
+    
+    <div class="ascii-border border-left">
+        ░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░
+    </div>
+    
+    <div class="ascii-border border-right">
+        ░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░<br>▓<br>▓<br>░
+    </div>
+    
+    <div class="ascii-border border-bottom">
+        ░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+    </div>
+
+    <div class="container">
+        <!-- 扫描线 -->
+        <div class="scanline"></div>
+        
+        <!-- 终端标题 -->
+        <div class="terminal-title">
+            <div class="ascii-title">
+                ██▓▒░ SYSTEM TERMINAL ACCESS - CLASSIFIED ░▒▓██
+            </div>
+            <div class="subtitle">
+                >_ ACCESS POINT: kamori.3vzhuji.cn | TARGET: MobileWiFi | PROTOCOL: SSH/TTY
+            </div>
+            <div class="subtitle">
+                >_ CONNECTION STATUS: <span class="led led-green"></span>SECURE | ENCRYPTION: AES-256
+            </div>
+        </div>
+        
+        <!-- 状态监视器 -->
+        <div class="status-monitor">
+            <div class="monitor-panel">
+                <div class="panel-title">[ SYSTEM STATUS ]</div>
+                <div class="status-line">
+                    <span>HOST:</span>
+                    <span class="status-value">MobileWiFi</span>
+                </div>
+                <div class="status-line">
+                    <span>UPTIME:</span>
+                    <span class="status-value">1d 5h 58m</span>
+                </div>
+                <div class="status-line">
+                    <span>LOAD AVG:</span>
+                    <span class="status-value">0.26 | 0.46 | 0.52</span>
+                </div>
+                <div class="status-line">
+                    <span>THREAT LEVEL:</span>
+                    <span class="status-value"><span class="led led-green"></span>LOW</span>
+                </div>
+            </div>
+            
+            <div class="monitor-panel">
+                <div class="panel-title">[ HARDWARE MONITOR ]</div>
+                <div class="status-line">
+                    <span>CPU:</span>
+                    <span class="status-value">Cortex-A53</span>
+                </div>
+                <div class="status-line">
+                    <span>CORES:</span>
+                    <span class="status-value">4 / 4</span>
+                </div>
+                <div class="status-line">
+                    <span>ARCH:</span>
+                    <span class="status-value">aarch64</span>
+                </div>
+                <div class="status-line">
+                    <span>KERNEL:</span>
+                    <span class="status-value">5.15.0+</span>
+                </div>
+            </div>
+            
+            <div class="monitor-panel">
+                <div class="panel-title">[ NETWORK STATUS ]</div>
+                <div class="status-line">
+                    <span>TARGET IP:</span>
+                    <span class="status-value">192.168.2.8:7681</span>
+                </div>
+                <div class="status-line">
+                    <span>LATENCY:</span>
+                    <span class="status-value">< 5ms</span>
+                </div>
+                <div class="status-line">
+                    <span>BANDWIDTH:</span>
+                    <span class="status-value">1 Gbps</span>
+                </div>
+                <div class="status-line">
+                    <span>FIREWALL:</span>
+                    <span class="status-value"><span class="led led-green"></span>ACTIVE</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主终端 -->
+        <div class="ascii-terminal">
+            <div class="terminal-header">
+                <div class="header-ascii">
+                    █▓▒░ TERMINAL SESSION: ROOT@MobileWiFi ░▒▓█
+                </div>
+                <div class="header-tabs">
+                    <div class="tab active">SHELL</div>
+                    <div class="tab">MONITOR</div>
+                    <div class="tab">LOGS</div>
+                    <div class="tab">CONFIG</div>
+                </div>
+            </div>
+            <iframe 
+                src="http://192.168.2.3:7681/terminal_interface.html"  
+                class="terminal-frame"
+                title="设备终端"
+                allowfullscreen
+            ></iframe>
+            
+            <!-- 终端输出模拟 -->
+            <div class="terminal-output">
+                >_ Last login: Thu Jan 22 17:48:46 2026 from 192.168.1.100<br>
+                >_ System load: 0.26 0.46 0.52<br>
+                >_ Memory usage: 42%<br>
+                >_ Disk usage: 68%<br>
+                >_ Active processes: 87<br>
+                >_ [root@MobileWiFi ~]# _
+            </div>
+        </div>
+        
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <button class="control-button" onclick="executeCommand('status')">
+                <span class="led led-green"></span> SYSTEM DIAGNOSTICS
+                <div class="key-hint">[CTRL+ALT+S]</div>
+            </button>
+            
+            <button class="control-button" onclick="executeCommand('monitor')">
+                <span class="led led-green"></span> REAL-TIME MONITOR
+                <div class="key-hint">[CTRL+ALT+M]</div>
+            </button>
+            
+            <button class="control-button" onclick="executeCommand('security')">
+                <span class="led led-red"></span> SECURITY SCAN
+                <div class="key-hint">[CTRL+ALT+C]</div>
+            </button>
+            
+            <button class="control-button" onclick="executeCommand('logs')">
+                <span class="led led-green"></span> ACCESS LOGS
+                <div class="key-hint">[CTRL+ALT+L]</div>
+            </button>
+            
+            <button class="control-button" onclick="executeCommand('backup')">
+                <span class="led led-green"></span> SYSTEM BACKUP
+                <div class="key-hint">[CTRL+ALT+B]</div>
+            </button>
+            
+            <button class="control-button" onclick="executeCommand('reboot')">
+                <span class="led led-red"></span> EMERGENCY REBOOT
+                <div class="key-hint">[CTRL+ALT+R]</div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 矩阵雨效果
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        
+        const drops = [];
+        for(let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 20, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px monospace';
+            
+            for(let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        
+        // 模拟命令执行
+        function executeCommand(cmd) {
+            const terminalOutput = document.querySelector('.terminal-output');
+            const original = terminalOutput.innerHTML;
+            
+            terminalOutput.innerHTML = `
+                >_ Executing command: ${cmd}<br>
+                >_ [SYSTEM] Processing request...<br>
+                >_ [SECURITY] Authentication verified<br>
+                >_ [EXEC] Command accepted<br>
+                >_ [STATUS] Operation in progress<br>
+                >_ [COMPLETE] Command executed successfully<br>
+                >_ [root@MobileWiFi ~]# _
+            `;
+            
+            // 模拟终端闪烁
+            document.querySelector('.ascii-terminal').style.boxShadow = 
+                '0 0 30px #00ff41, 0 0 50px #00cc33';
+            
+            setTimeout(() => {
+                document.querySelector('.ascii-terminal').style.boxShadow = 
+                    'var(--glow)';
+                setTimeout(() => {
+                    terminalOutput.innerHTML = original;
+                }, 2000);
+            }, 1000);
+            
+            // 播放音效（可选）
+            if(cmd === 'reboot') {
+                if(confirm('⚠️ WARNING: Emergency reboot will disconnect all sessions!\n\nProceed?')) {
+                    alert('System reboot initiated...');
+                }
+            }
+        }
+        
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 这里可以添加实际的内容切换逻辑
+                if(this.textContent === 'MONITOR') {
+                    alert('System monitor view would be displayed here');
+                }
+            });
+        });
+        
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if(e.ctrlKey && e.altKey) {
+                switch(e.key.toUpperCase()) {
+                    case 'S': executeCommand('status'); break;
+                    case 'M': executeCommand('monitor'); break;
+                    case 'C': executeCommand('security'); break;
+                    case 'L': executeCommand('logs'); break;
+                    case 'B': executeCommand('backup'); break;
+                    case 'R': executeCommand('reboot'); break;
+                }
+            }
+        });
+        
+        // 动态状态更新
+        function updateStatus() {
+            const statusValues = document.querySelectorAll('.status-value');
+            // 这里可以添加实际的AJAX请求来获取实时状态
+            setInterval(() => {
+                // 模拟数据更新
+                const loadAvg = `${(Math.random() * 0.5).toFixed(2)} | ${(Math.random() * 0.7).toFixed(2)} | ${(Math.random() * 0.6).toFixed(2)}`;
+                document.querySelector('.status-value:nth-child(3)').textContent = loadAvg;
+            }, 5000);
+        }
+        
+        // 调整画布大小
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // 启动动画
+        setInterval(drawMatrix, 50);
+        updateStatus();
+    </script>
+</body>
+</html>

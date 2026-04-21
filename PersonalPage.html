@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人数字空间</title>
+    <link rel="stylesheet" href="./PersonalPage.css">
+    <script src="./PersonalPage.js"></script>
+    
+</head>
+<body>
+    <main id="main-content" class="main-content">
+        <!-- 个人信息卡 -->
+    <section class="content-card id-card">
+        <img src="./SourceMaterial/Kjj.png" alt="个人头像" class="id-avatar">
+        <h2 class="neon-title">Kamori的数字空间</h2>
+        <p class="subtitle">java-爪哇 | 不会敲代码</p>
+
+        <!-- 分类区块1：Java基础 -->
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="java-basic">
+                <span class="btn-text">Java基础</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="java-basic" class="expand-content">
+                <p>🎨 语言类的创建</p>
+                <p>🚀 修饰符与标识符</p>
+                <p>📚 基础类型与方法</p>
+                <p>🌱 java对象与类</p>
+                <p>🧷 接口/输入输出/字符串</p>
+            </div>
+        </div>
+
+    <!-- 分类区块2：集合框架 -->
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="collections">
+                <span class="btn-text">集合框架</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="collections" class="expand-content">
+                <p>数组</p>
+                <p>List(列表)</p>
+                <p>排序</p>
+                <p>Set(集合)</p>
+                <p>Map(图)</p>
+                <p>Stack(栈)</p>
+                <p>Queue(队列)</p>
+            </div>
+        </div>
+
+        <!-- 分类区块3：基础算法 -->
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms">
+                <span class="btn-text">排序算法</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms" class="expand-content">
+                <p>排序</p>
+                <p>冒泡排序</p>
+                <p>选择排序</p>
+                <p>插入排序</p>
+                <p>快速排序</p>
+                <p>归并排序</p>
+                <p>桶排序</p>
+                <p>希尔排序</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-fundamental">
+                <span class="btn-text">基础算法</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-fundamental" class="expand-content">
+                <p>时间复杂度</p>
+                <p>枚举</p>
+                <p>模拟</p>
+                <p>递归</p>
+                <p>进制转换</p>
+                <p>前缀和</p>
+                <p>差分</p>
+                <p>离散化</p>
+                <p>贪心</p>
+                <p>双指针</p>
+                <p>二分</p>
+                <p>倍增</p>
+                <p>构造</p>
+                <p>位运算</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-search">
+                <span class="btn-text">搜索</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-search" class="expand-content">
+                <p>DFS基础</p>
+                <p>DFS回溯</p>
+                <p>DFS剪枝</p>
+                <p>记忆化搜索</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-dp">
+                <span class="btn-text">动态规划</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-dp" class="expand-content">
+                <p>线性DP</p>
+                <p>二维DP</p>
+                <p>LIS(最长上升子序列)</p>
+                <p>LCS(最长公共子序列)</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-backpack">
+                <span class="btn-text">背包问题</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-backpack" class="expand-content">
+                <p>01背包</p>
+                <p>完全背包</p>
+                <p>多重背包</p>
+                <p>单调队列优多重背包</p>
+                <p>二位费用背包&分组背包</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-DP">
+                <span class="btn-text"></span>DP</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-DP" class="expand-content">
+                <p>自上而下树形DP</p>
+                <p>自下而上树形DP</p>
+                <p>路径相关树形DP</p>
+                <p>换根DP</p>
+                <p>区间DP</p>
+                <p>状压DP</p>
+                <p>数位DP</p>
+                <p>期望DP</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-String">
+                <span class="btn-text">字符串</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-String" class="expand-content">
+                <p>KMP&字符串哈希</p>
+                <p>Manacher</p>
+                <p>字典树基础</p>
+                <p>01 tire</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-Math">
+                <span class="btn-text">数论</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-Math" class="expand-content">
+                <p>线性代数与矩阵运算-矩阵乘法&整除&同余&GCD&LCM</p>
+                <p>高斯消元</p>
+                <p>行列式</p>
+                <p>素数朴素判定&埃氏筛法</p>
+                <p>唯一分解定理</p>
+                <p>快速幂</p>
+                <p>费马小定理&逆元</p>
+                <p>欧拉函数&欧拉降幂</p>
+                <p>素数筛</p>
+                <p>裴蜀定理</p>
+                <p>计数原理</p>
+                <p>排列组合专项</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-DataStructure">
+                <span class="btn-text">数据结构</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-DataStructure" class="expand-content">
+                <p>基础数据结构-链表、栈、队列</p>
+                <p>基础数据结构-堆</p>
+                <p>ST表</p>
+                <p>并查集基础</p>
+                <p>可撤销并查集</p>
+                <p>带权并查集</p>
+                <p>树的基本与遍历</p>
+                <p>树的直径与重心</p>
+                <p>LCA</p>
+                <p>树上差分</p>
+                <p>DFS序</p>
+                <p>树链剖分</p>
+                <p>树状数组基础</p>
+                <p>树状数组上二分</p>
+                <p>线段树-动态开点</p>
+                <p>线段树-标记永久化</p>
+                <p>线段树维护矩阵</p>
+                <p>线段树维护哈希</p>
+                <p>可持久化线段树</p>
+                <p>扫描线与二维数点</p>
+                <p>平衡树-Splay</p>
+                <p>平衡树-FHQ_Treap</p>
+                <p>单调栈&单调队列</p>
+                <p>分块基础</p>
+                <p>普通莫队</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-Map">
+                <span class="btn-text">图论</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-Map" class="expand-content">
+                <p>图的基础与遍历</p>
+                <p>基础拓扑排序</p>
+                <p>Floyd & Dijkstrea</p>
+                <p>Johnson</p>
+                <p>Kruskal & Prim</p>
+            </div>
+        </div>
+        <div class="category-block">
+            <button class="expand-btn" 
+                aria-expanded="false" 
+                onclick="toggleCategory(this)"
+                data-target="algorithms-Cg">
+                <span class="btn-text">计算几何</span>
+                <span class="status-indicator" aria-hidden="true"></span>  <!-- 新增状态指示器 -->
+            </button>
+            <div id="algorithms-Cg" class="expand-content">
+                <p>计算几何基础</p>
+                <p>二维计算几何基础</p>
+                <p>点积和叉积</p>
+                <p>点和线的关系</p>
+                <p>线和线的关系</p>
+                <p>任意多边形面积计算</p>
+            </div>
+        </div>
+        </section>
+    </main>
+</body>
+</html>

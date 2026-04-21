@@ -1,0 +1,241 @@
+/* 基础样式重置 */
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    list-style: none;
+    scroll-behavior: smooth;
+}
+
+/* 页面主体样式 */
+body {
+    background: url(./SourceMaterial/wanderer_v03_5120x2880.jpg) no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    padding: 20px;
+    backdrop-filter: blur(5px) brightness(0.9);
+    -webkit-backdrop-filter: blur(5px) brightness(0.9);
+}
+
+/* 主内容容器（单页布局） */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    gap: 30px;
+    min-height: calc(100vh - 40px);
+}
+
+.subtitle {
+    font-family: "KaiTi", "楷体", "楷体_GB2312", "STKaiti", "华文楷体", serif;
+}
+
+/* 增强型磨砂玻璃卡片 */
+.content-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(162,255,99,0.3);
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 30px;
+    transition: all 0.4s cubic-bezier(0.25, 0.45, 0.45, 0.95);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 移除卡片动画 */
+.content-card:hover {
+    /* transform: translateY(-8px) rotate(2deg); */
+    box-shadow: 0 15px 30px rgba(0,255,255,0.1);
+}
+
+/* 按钮基础样式 */
+.learn-more,
+.expand-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 25px;
+    background: rgba(16,243,235,0.1);
+    border: 1px solid rgba(16,243,235,0.5);
+    border-radius: 30px;
+    color: #10f3eb;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    min-width: 180px;  /* 最小宽度 */
+    justify-content: center;  /* 文字居中 */
+}
+
+/* 展开按钮专用样式 */
+.expand-btn {
+    width: auto;  /* 修改为自适应宽度 */
+    min-width: 200px;  /* 设置最小宽度 */
+    margin: 20px auto;
+    padding: 12px 30px;  /* 增加内边距 */
+}
+
+/* 按钮公共效果 */
+.learn-more:hover,
+.expand-btn:hover {
+    background: rgba(16,243,235,0.2);
+    transform: translateX(5px);
+}
+
+/* 按钮光效动画 */
+.learn-more::before,
+.expand-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(162,255,99,0.2),
+        transparent
+    );
+    transition: left 0.8s ease;
+    z-index: -1;
+}
+
+.learn-more:hover::before,
+.expand-btn:hover::before {
+    left: 100%;
+}
+
+
+
+/* 按钮文字样式 */
+.btn-text {
+    opacity: 1;  /* 始终显示文字 */
+    color: #10f3eb;
+    font-size: 1em;  /* 调整字号 */
+    position: relative;  /* 改为相对定位 */
+    margin-left: 8px;
+}
+
+/* 展开内容区域 */
+.expand-content {
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: 
+        opacity 0.3s ease,
+        transform 0.3s ease,
+        visibility 0.3s ease,
+        max-height 0.3s cubic-bezier(0.25, 0.45, 0.45, 0.95);
+    padding: 0 20px;
+    max-height: 0;
+    /* 重置默认margin */
+    margin: 0;
+}
+
+.expand-content.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    padding: 0px;
+    margin-top: 15px;
+    max-height: var(--content-height, 2000px);
+    /*防止最后一个元素产生空白*/
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+/* 修复段落间距 */
+.expand-content p {
+    margin: 4px 0;
+    line-height: 1.6;
+    color: black;
+    font-size: large;
+    font-weight: 600;/*文字加粗*/
+    font-family: "KaiTi", "楷体", "楷体_GB2312", "STKaiti", "华文楷体", serif;
+}
+/* 个人卡片样式 */
+.id-card {
+    text-align: center;
+    padding: 40px 20px;
+    margin-bottom: 30px;
+}
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-right: 2px solid #10f3eb;
+    border-bottom: 2px solid #10f3eb;
+    margin-left: 12px;
+    transition: transform 0.3s ease;
+    transform: rotate(var(--angle, 135deg));  /* 默认收起状态 */
+}
+
+.expand-btn:hover .status-indicator {
+    border-color: #a2ff63;
+}
+
+/* 展开状态指示器样式 */
+.expand-btn[aria-expanded="true"] .status-indicator {
+    transform: rotate(var(--angle, 315deg));  /* 展开状态角度 */
+}
+
+.id-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #10f3eb;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease;
+}
+
+.id-avatar:hover {
+    transform: scale(1.05) rotate(5deg);
+}
+
+/* 响应式布局调整 */
+@media (max-width: 768px) {
+    .main-content {
+        gap: 20px;
+        padding: 10px;
+    }
+    
+    .content-card {
+        padding: 20px;
+        margin: 0 10px;
+    }
+    
+    .learn-more,
+    .expand-btn {
+        padding: 10px 20px;
+        font-size: 0.9em;
+        min-width: 160px;
+    }
+    
+    .expand-btn {
+        margin: 15px auto;
+    }
+    
+    .id-card {
+        padding: 30px 15px;
+    }
+    
+    .id-avatar {
+        width: 90px;
+        height: 90px;
+    }
+}
+
+/* 移动端文本显示优化 */
+@media (max-width: 480px) {
+    .btn-text {
+        margin-left: 6px;
+    }
+}

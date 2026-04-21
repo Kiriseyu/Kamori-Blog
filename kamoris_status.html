@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>KAMORI Full Status</title>
+  <style>
+    :root{--bg:#000;--glow:#00FF41;--glow-dim:#00cc33;}
+    body{margin:0;padding:1rem;background:var(--bg);color:var(--glow);font:14px/1.4 'Share Tech Mono',monospace;}
+    h1{font-size:2rem;text-align:center;text-shadow:0 0 4px var(--glow);}
+    /* 静态星光 */
+    body::before{
+      content:'';
+      position:fixed;inset:0;z-index:-1;
+      background:
+        radial-gradient(1px 1px at 20px 30px,var(--glow),transparent),
+        radial-gradient(1px 1px at 40px 70px,var(--glow),transparent),
+        radial-gradient(1px 1px at 90px 40px,var(--glow),transparent),
+        radial-gradient(1px 1px at 130px 80px,var(--glow),transparent),
+        radial-gradient(1px 1px at 160px 30px,var(--glow),transparent);
+      background-size:200px 200px;opacity:.15;
+    }
+    
+    /* 容器布局 */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    /* 卡片样式 */
+    .card {
+      border: 1px solid var(--glow);
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    
+    .card h2 {
+      margin-top: 0;
+      border-bottom: 1px solid var(--glow);
+      padding-bottom: 5px;
+      color: var(--glow);
+    }
+    
+    /* 表格样式 */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    th, td {
+      padding: 6px 8px;
+      border: 1px solid var(--glow);
+      text-align: left;
+    }
+    
+    th {
+      background: rgba(0,255,65,.1);
+      width: 35%;
+    }
+    
+    /* 状态点 */
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    
+    .online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+    .offline { background: #e74c3c; box-shadow: 0 0 5px #e74c3c; }
+    .warning { background: #f39c12; box-shadow: 0 0 5px #f39c12; }
+    
+    /* 进度条 */
+    .progress-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .progress-bar {
+      flex: 1;
+      height: 10px;
+      background: #000;
+      border: 1px solid var(--glow);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transition: width 0.5s ease;
+    }
+    
+    .progress-value {
+      min-width: 40px;
+      text-align: right;
+      font-size: 12px;
+    }
+    
+    /* 进度条颜色 */
+    .temp-progress { background: linear-gradient(90deg, #2ecc71, #f39c12, #e74c3c); }
+    .mem-progress { background: linear-gradient(90deg, #2ecc71, #f39c12, #e74c3c); }
+    .disk-progress { background: linear-gradient(90deg, #2ecc71, #f39c12, #e74c3c); }
+    .swap-progress { background: linear-gradient(90deg, #2ecc71, #f39c12, #e74c3c); }
+    
+    /* 信号强度 */
+    .signal-bar {
+      display: inline-block;
+      width: 60px;
+      height: 8px;
+      background: #000;
+      border: 1px solid var(--glow);
+      margin-left: 10px;
+      position: relative;
+    }
+    
+    .signal-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71);
+    }
+    
+    /* 负载指示器 */
+    .load-indicator {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      margin: 0 3px;
+    }
+    
+    .load-low { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; }
+    .load-med { background: rgba(243, 156, 18, 0.2); border: 1px solid #f39c12; }
+    .load-high { background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; }
+    
+    /* 进程列表 */
+    .process-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 3px 0;
+      padding: 3px;
+      border: 1px solid rgba(0,255,65,0.1);
+      font-size: 11px;
+    }
+    
+    .process-cpu { color: #f39c12; }
+    .process-mem { color: #3498db; }
+    
+    /* 错误信息 */
+    .error-msg {
+      color: #e74c3c;
+      text-align: center;
+      padding: 10px;
+      border: 1px solid #e74c3c;
+      background: rgba(231,76,60,0.1);
+    }
+    
+    /* 按钮样式 */
+    .btn {
+      background: rgba(0,255,65,.1);
+      border: 1px solid var(--glow);
+      color: var(--glow);
+      padding: 5px 15px;
+      font-family: 'Share Tech Mono', monospace;
+      cursor: pointer;
+      margin: 0 5px;
+    }
+    
+    .btn:hover {
+      background: rgba(0,255,65,.2);
+    }
+    
+    /* WebSocket状态 */
+    .ws-status {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(0,255,65,0.1);
+    }
+    
+    /* 通知样式 */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      border-radius: 4px;
+      z-index: 1000;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      color: white;
+    }
+    
+    .notification.success { background: #2ecc71; }
+    .notification.error { background: #e74c3c; }
+    .notification.warning { background: #f39c12; }
+    .notification.info { background: #3498db; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>KAMORI Full System Status</h1>
+    
+    <!-- 状态栏 -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span id="statusDot" class="status-dot offline"></span>
+          <span id="statusText">等待连接...</span>
+          <span id="wsStatus" class="ws-status" style="margin-left: 10px;">JSONBin</span>
+        </div>
+        <div>
+          <span id="connectionInfo">数据源: JSONBin.io</span>
+          <span style="margin-left: 20px;">更新: <span id="refreshTimer">停止</span></span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 系统信息卡片 -->
+    <div class="card">
+      <h2>📊 系统信息</h2>
+      <table>
+        <tr><th>内核版本</th><td id="sys_kernel">N/A</td></tr>
+        <tr><th>操作系统</th><td id="sys_os">N/A</td></tr>
+        <tr><th>主机名</th><td id="sys_hostname">N/A</td></tr>
+        <tr><th>架构</th><td id="sys_arch">N/A</td></tr>
+        <tr><th>运行时间</th><td id="sys_uptime">N/A</td></tr>
+        <tr><th>CPU型号</th><td id="sys_cpu_model">N/A</td></tr>
+        <tr><th>CPU核心</th><td id="sys_cpu_cores">N/A</td></tr>
+        <tr><th>CPU频率</th><td id="sys_cpu_freq">N/A</td></tr>
+      </table>
+    </div>
+    
+    <!-- 性能指标卡片 -->
+    <div class="card">
+      <h2>⚡ 性能指标</h2>
+      
+      <!-- 温度 -->
+      <div style="margin: 10px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>🌡️ CPU温度</span>
+          <span id="tempValue">N/A</span>
+        </div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div id="tempBar" class="progress-fill temp-progress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 内存使用 -->
+      <div style="margin: 15px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>💾 内存使用</span>
+          <span id="memValue">N/A</span>
+        </div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div id="memBar" class="progress-fill mem-progress" style="width: 0%"></div>
+          </div>
+        </div>
+        <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">
+          <span id="memDetail">N/A</span>
+        </div>
+      </div>
+      
+      <!-- 磁盘使用 -->
+      <div style="margin: 15px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>💿 磁盘使用</span>
+          <span id="diskValue">N/A</span>
+        </div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div id="diskBar" class="progress-fill disk-progress" style="width: 0%"></div>
+          </div>
+        </div>
+        <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">
+          <span id="diskDetail">N/A</span>
+        </div>
+      </div>
+      
+      <!-- Swap使用 -->
+      <div style="margin: 15px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>🔄 Swap使用</span>
+          <span id="swapValue">N/A</span>
+        </div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div id="swapBar" class="progress-fill swap-progress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 系统负载 -->
+      <div style="margin-top: 15px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>📈 系统负载</span>
+          <span id="loadValue">N/A</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <span>1分钟: <span id="load1" class="load-indicator load-low">0.00</span></span>
+          <span>5分钟: <span id="load5" class="load-indicator load-low">0.00</span></span>
+          <span>15分钟: <span id="load15" class="load-indicator load-low">0.00</span></span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 网络信息卡片 -->
+    <div class="card">
+      <h2>🌐 网络信息</h2>
+      
+      <!-- WiFi信息 -->
+      <table>
+        <tr><th>WiFi SSID</th><td id="wifi_ssid">N/A</td></tr>
+        <tr><th>WiFi IP</th><td id="wifi_ip">N/A</td></tr>
+        <tr><th>WiFi MAC</th><td id="wifi_mac">N/A</td></tr>
+        <tr><th>WiFi网关</th><td id="wifi_gateway">N/A</td></tr>
+      </table>
+      
+      <!-- 网络流量 -->
+      <div style="margin: 15px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>⬇️ 下载速率</span>
+          <span id="rx_rate">0 kB/s</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>⬆️ 上传速率</span>
+          <span id="tx_rate">0 kB/s</span>
+        </div>
+        <div style="font-size: 11px; opacity: 0.7;">
+          总计: ⬇️ <span id="rx_total">0</span> MB | ⬆️ <span id="tx_total">0</span> MB
+        </div>
+      </div>
+      
+      <!-- 信号强度 -->
+      <div style="margin: 15px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>📶 信号强度</span>
+          <span id="rssi_value">N/A</span>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <div class="signal-bar">
+            <div id="signalFill" class="signal-fill" style="width: 0%"></div>
+          </div>
+          <span style="margin-left: 10px; font-size: 11px;" id="signal_text">弱</span>
+        </div>
+      </div>
+      
+      <!-- 网络接口 -->
+      <div>
+        <div style="font-size: 11px; opacity: 0.7;">网络接口:</div>
+        <div id="network_interfaces" style="font-size: 11px;">N/A</div>
+      </div>
+    </div>
+    
+    <!-- 进程和服务卡片 -->
+    <div class="card">
+      <h2>🔧 进程与服务</h2>
+      
+      <!-- 进程统计 -->
+      <div style="margin-bottom: 15px;">
+        <table>
+          <tr><th>总进程数</th><td id="total_processes">N/A</td></tr>
+          <tr><th>运行中进程</th><td id="running_processes">N/A</td></tr>
+          <tr><th>SSH连接数</th><td id="ssh_connections">N/A</td></tr>
+          <tr><th>运行中服务</th><td id="running_services">N/A</td></tr>
+        </table>
+      </div>
+      
+      <!-- Top 5进程 -->
+      <div>
+        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 5px;">Top 5进程 (CPU):</div>
+        <div id="top5_processes" style="font-size: 11px;">
+          等待数据...
+        </div>
+      </div>
+    </div>
+    
+    <!-- 硬件状态卡片 -->
+    <div class="card">
+      <h2>🖥️ 硬件状态</h2>
+      
+      <!-- Modem信息 -->
+      <table>
+        <tr><th>4G Modem</th><td id="modem_present">未检测到</td></tr>
+        <tr><th>运营商</th><td id="modem_operator">N/A</td></tr>
+      </table>
+      
+      <!-- LED状态 -->
+      <div style="margin-top: 15px;">
+        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 5px;">LED状态:</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <div style="text-align: center;">
+            <div style="color: #e74c3c;">🔴 Red</div>
+            <div id="led_red" style="font-size: 11px;">none</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="color: #2ecc71;">🟢 Green</div>
+            <div id="led_green" style="font-size: 11px;">none</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="color: #3498db;">🔵 Blue</div>
+            <div id="led_blue" style="font-size: 11px;">none</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 数据来源信息 -->
+    <div class="card" style="font-size: 11px; opacity: 0.7;">
+      <div>数据来源: JSONBin.io (免费版)</div>
+      <div>更新间隔: 5分钟上传 / 1分钟获取</div>
+      <div>月API使用: <span id="apiUsage">0</span>/10000 次</div>
+      <div>BIN ID: 6970731dd0ea881f4079ea7d</div>
+    </div>
+    
+    <!-- 底部信息 -->
+    <div class="card" style="text-align: center;">
+      <div style="margin-bottom: 10px;">
+        <span id="lastUpdate">最后更新: 等待数据...</span>
+      </div>
+      <div id="errorDisplay" style="display: none;"></div>
+      <div>
+        <button class="btn" onclick="refreshData()">立即刷新</button>
+        <button class="btn" onclick="location.reload()">刷新页面</button>
+        <button class="btn" onclick="toggleConnection()" id="connectionBtn">开始轮询</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ===== JSONBin.io 配置 =====
+const JSONBIN_ID = "6979c3d0ae596e708ffcf39d";
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
+const JSONBIN_KEY = "$2a$10$qRRCgyjof5N89SZMVzgB5..e6IhzOTvwstBYcpzpSzy6xLWzvd78y";
+
+// ===== 全局变量 =====
+let pollInterval = null;
+let isPolling = false;
+let dataUpdateCount = 0;
+let errorCount = 0;
+
+// ===== 状态显示函数 =====
+function updateStatus(connected, message = '') {
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    
+    if (connected) {
+        statusDot.className = 'status-dot online';
+        statusText.textContent = '● ' + (message || '在线连接');
+    } else {
+        statusDot.className = 'status-dot offline';
+        statusText.textContent = '○ ' + (message || '离线');
+    }
+}
+
+function updateWSStatus(state, text) {
+    const wsStatus = document.getElementById('wsStatus');
+    wsStatus.textContent = text;
+    
+    switch(state) {
+        case 'connected':
+            wsStatus.style.background = 'rgba(46, 204, 113, 0.2)';
+            wsStatus.style.color = '#2ecc71';
+            break;
+        case 'connecting':
+            wsStatus.style.background = 'rgba(243, 156, 18, 0.2)';
+            wsStatus.style.color = '#f39c12';
+            break;
+        case 'disconnected':
+            wsStatus.style.background = 'rgba(231, 76, 60, 0.2)';
+            wsStatus.style.color = '#e74c3c';
+            break;
+        case 'error':
+            wsStatus.style.background = 'rgba(231, 76, 60, 0.3)';
+            wsStatus.style.color = '#e74c3c';
+            break;
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('errorDisplay');
+    if (errorDiv) {
+        errorDiv.innerHTML = `<div class="error-msg">${message}</div>`;
+        errorDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+// ===== 获取JSONBin数据 =====
+async function fetchJsonBinData() {
+    try {
+        console.log('从JSONBin获取数据...');
+        
+        const response = await fetch(JSONBIN_URL, {
+            headers: {
+                'X-Master-Key': JSONBIN_KEY,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP错误: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.record) {
+            return result.record;
+        } else {
+            throw new Error('JSON结构错误');
+        }
+        
+    } catch (error) {
+        console.error('获取JSONBin数据失败:', error);
+        throw error;
+    }
+}
+
+// ===== 轮询控制 =====
+function startPolling() {
+    if (isPolling) return;
+    
+    console.log('开始JSONBin轮询...');
+    updateStatus(false, '开始轮询JSONBin...');
+    updateWSStatus('connecting', '轮询中');
+    
+    pollInterval = setInterval(fetchAndUpdateData, 60000);
+    isPolling = true;
+    
+    fetchAndUpdateData();
+    
+    document.getElementById('connectionBtn').textContent = '停止轮询';
+    document.getElementById('refreshTimer').textContent = '60秒';
+    showNotification('开始从JSONBin获取数据', 'success');
+}
+
+function stopPolling() {
+    if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+    }
+    isPolling = false;
+    console.log('停止轮询');
+    updateWSStatus('disconnected', '已停止');
+    document.getElementById('connectionBtn').textContent = '开始轮询';
+    document.getElementById('refreshTimer').textContent = '停止';
+    errorCount = 0;
+    showNotification('已停止数据轮询', 'info');
+}
+
+async function fetchAndUpdateData() {
+    try {
+        const data = await fetchJsonBinData();
+        dataUpdateCount++;
+        
+        updateAllData(data);
+        
+        const now = new Date();
+        document.getElementById('lastUpdate').textContent = 
+            `最后更新: ${now.toLocaleTimeString('zh-CN')} (${dataUpdateCount})`;
+        
+        updateStatus(true, '数据正常');
+        updateWSStatus('connected', 'JSONBin');
+        errorCount = 0;
+        
+        document.getElementById('apiUsage').textContent = dataUpdateCount;
+        
+        if (dataUpdateCount === 1) {
+            showNotification('首次数据获取成功', 'success');
+        }
+        
+    } catch (error) {
+        console.error('更新数据失败:', error);
+        updateStatus(false, '获取失败');
+        updateWSStatus('error', '连接失败');
+        errorCount++;
+        
+        showNotification('无法从JSONBin获取数据', 'error');
+        
+        if (errorCount > 3) {
+            showError('JSONBin连接失败，请检查网络和API Key');
+            stopPolling();
+        }
+    }
+}
+
+function toggleConnection() {
+    if (isPolling) {
+        stopPolling();
+    } else {
+        startPolling();
+    }
+}
+
+window.refreshData = function() {
+    if (isPolling) {
+        fetchAndUpdateData();
+        showNotification('手动刷新数据', 'info');
+    } else {
+        showNotification('请先开始轮询', 'warning');
+    }
+};
+
+// ===== 数据更新函数 =====
+function updateTemperature(temp) {
+    const value = parseFloat(temp) || 0;
+    document.getElementById('tempValue').textContent = value.toFixed(1) + '°C';
+    
+    let width = Math.min((value / 80) * 100, 100);
+    document.getElementById('tempBar').style.width = width + '%';
+}
+
+function updateMemory(mem) {
+    const usedPercent = mem.used_percent || 0;
+    const usedMB = mem.used_mb || 0;
+    const totalMB = mem.total_mb || 1;
+    
+    document.getElementById('memValue').textContent = Math.round(usedPercent) + '%';
+    document.getElementById('memDetail').textContent = `${usedMB} MB / ${totalMB} MB`;
+    document.getElementById('memBar').style.width = usedPercent + '%';
+    
+    const bar = document.getElementById('memBar');
+    if (usedPercent > 80) {
+        bar.style.background = '#e74c3c';
+    } else if (usedPercent > 60) {
+        bar.style.background = '#f39c12';
+    } else {
+        bar.style.background = '#2ecc71';
+    }
+}
+
+function updateDisk(disk) {
+    const usedPercent = disk.root_used_percent || 0;
+    const used = disk.root_used || '0';
+    const total = disk.root_total || '0';
+    
+    document.getElementById('diskValue').textContent = Math.round(usedPercent) + '%';
+    document.getElementById('diskDetail').textContent = `${used} / ${total}`;
+    document.getElementById('diskBar').style.width = usedPercent + '%';
+    
+    const bar = document.getElementById('diskBar');
+    if (usedPercent > 90) {
+        bar.style.background = '#e74c3c';
+    } else if (usedPercent > 70) {
+        bar.style.background = '#f39c12';
+    } else {
+        bar.style.background = '#2ecc71';
+    }
+}
+
+function updateSwap(swap) {
+    const usedPercent = swap.swap_used_percent || 0;
+    if (swap.swap_total_mb > 0) {
+        document.getElementById('swapValue').textContent = Math.round(usedPercent) + '%';
+        document.getElementById('swapBar').style.width = usedPercent + '%';
+    } else {
+        document.getElementById('swapValue').textContent = '未启用';
+        document.getElementById('swapBar').style.width = '0%';
+    }
+}
+
+function updateLoad(load) {
+    const load1 = parseFloat(load.load_1) || 0;
+    const load5 = parseFloat(load.load_5) || 0;
+    const load15 = parseFloat(load.load_15) || 0;
+    
+    document.getElementById('loadValue').textContent = `${load1.toFixed(2)} | ${load5.toFixed(2)} | ${load15.toFixed(2)}`;
+    document.getElementById('load1').textContent = load1.toFixed(2);
+    document.getElementById('load5').textContent = load5.toFixed(2);
+    document.getElementById('load15').textContent = load15.toFixed(2);
+    
+    const cores = parseInt(document.getElementById('sys_cpu_cores').textContent) || 1;
+    
+    const setLoadColor = (elementId, value) => {
+        const element = document.getElementById(elementId);
+        if (value > cores * 1.5) {
+            element.className = 'load-indicator load-high';
+        } else if (value > cores) {
+            element.className = 'load-indicator load-med';
+        } else {
+            element.className = 'load-indicator load-low';
+        }
+    };
+    
+    setLoadColor('load1', load1);
+    setLoadColor('load5', load5);
+    setLoadColor('load15', load15);
+}
+
+function updateNetwork(network) {
+    document.getElementById('wifi_ssid').textContent = network.wifi_ssid || '未连接';
+    document.getElementById('wifi_ip').textContent = network.wifi_ip || 'N/A';
+    document.getElementById('wifi_mac').textContent = network.wifi_mac || 'N/A';
+    document.getElementById('wifi_gateway').textContent = network.wifi_gateway || 'N/A';
+    
+    document.getElementById('rx_rate').textContent = (network.download_rate || 0) + ' kB/s';
+    document.getElementById('tx_rate').textContent = (network.upload_rate || 0) + ' kB/s';
+    document.getElementById('rx_total').textContent = network.download_total_mb || 0;
+    document.getElementById('tx_total').textContent = network.upload_total_mb || 0;
+    
+    const rssi = network.rssi || 'N/A';
+    let signalStrength = 0;
+    let signalText = '未知';
+    
+    if (rssi !== 'N/A' && rssi !== '') {
+        const dbm = parseInt(rssi);
+        if (dbm >= -30) { signalStrength = 100; signalText = '极强'; }
+        else if (dbm >= -50) { signalStrength = 80; signalText = '强'; }
+        else if (dbm >= -60) { signalStrength = 70; signalText = '良好'; }
+        else if (dbm >= -70) { signalStrength = 60; signalText = '中等'; }
+        else if (dbm >= -80) { signalStrength = 40; signalText = '弱'; }
+        else if (dbm >= -90) { signalStrength = 20; signalText = '极弱'; }
+        else { signalStrength = 0; signalText = '无信号'; }
+        
+        document.getElementById('rssi_value').textContent = dbm + ' dBm';
+    }
+    
+    document.getElementById('signalFill').style.width = signalStrength + '%';
+    document.getElementById('signal_text').textContent = signalText;
+    
+    document.getElementById('network_interfaces').textContent = 
+        network.all_interfaces || network.main_interface || 'N/A';
+}
+
+function updateProcesses(processes, sshConnections) {
+    document.getElementById('total_processes').textContent = processes.total || 0;
+    document.getElementById('running_processes').textContent = processes.running || 0;
+    document.getElementById('ssh_connections').textContent = sshConnections + ' 个连接';
+    
+    const top5Div = document.getElementById('top5_processes');
+    if (processes.top5 && Array.isArray(processes.top5) && processes.top5.length > 0) {
+        let html = '';
+        processes.top5.forEach(proc => {
+            html += `<div class="process-item">
+                <span>${proc.cmd || 'N/A'}</span>
+                <span>
+                    <span class="process-cpu">CPU: ${proc.cpu || 0}%</span>
+                    <span style="margin-left: 10px;" class="process-mem">MEM: ${proc.mem || 0}%</span>
+                </span>
+            </div>`;
+        });
+        top5Div.innerHTML = html;
+    } else {
+        top5Div.innerHTML = '<div style="opacity: 0.7;">暂无进程数据</div>';
+    }
+}
+
+function updateHardware(leds, modem, services) {
+    document.getElementById('led_red').textContent = leds.red || 'none';
+    document.getElementById('led_green').textContent = leds.green || 'none';
+    document.getElementById('led_blue').textContent = leds.blue || 'none';
+    
+    if (modem.present > 0) {
+        document.getElementById('modem_present').textContent = '已连接';
+        document.getElementById('modem_operator').textContent = modem.operator || '未知';
+    } else {
+        document.getElementById('modem_present').textContent = '未检测到';
+        document.getElementById('modem_operator').textContent = 'N/A';
+    }
+    
+    document.getElementById('running_services').textContent = (services.running || 0) + ' 个服务';
+}
+
+function updateAllData(data) {
+    const sys = data.system || {};
+    document.getElementById('sys_kernel').textContent = sys.kernel || 'N/A';
+    document.getElementById('sys_os').textContent = sys.os_name || 'N/A';
+    document.getElementById('sys_hostname').textContent = sys.hostname || 'N/A';
+    document.getElementById('sys_arch').textContent = sys.arch || 'N/A';
+    document.getElementById('sys_uptime').textContent = sys.uptime || 'N/A';
+    document.getElementById('sys_cpu_model').textContent = sys.cpu_model || 'N/A';
+    document.getElementById('sys_cpu_cores').textContent = (sys.cpu_cores || 'N/A') + ' 核心';
+    document.getElementById('sys_cpu_freq').textContent = 
+        (sys.cpu_freq_mhz || 'N/A') + (sys.cpu_freq_mhz !== 'N/A' ? ' MHz' : '');
+    
+    const temp = data.temperature || {};
+    updateTemperature(temp.cpu_temp);
+    
+    const mem = data.memory || {};
+    updateMemory(mem);
+    
+    const disk = data.storage || {};
+    updateDisk(disk);
+    
+    updateSwap(mem);
+    
+    updateLoad(sys);
+    
+    const network = data.network || {};
+    updateNetwork(network);
+    
+    const processes = data.processes || {};
+    updateProcesses(processes, network.ssh_connections || 0);
+    
+    updateHardware(data.leds || {}, data.modem || {}, data.services || {});
+    
+    updateStatus(true);
+}
+
+// ===== 初始化 =====
+function init() {
+    updateStatus(false, '初始化...');
+    updateWSStatus('ready', '准备就绪');
+    
+    console.log('KAMORI监控系统初始化');
+    console.log('JSONBin配置:', {
+        binId: JSONBIN_ID,
+        url: JSONBIN_URL,
+        pollingInterval: '60秒'
+    });
+    
+    setTimeout(() => {
+        if (!isPolling) {
+            startPolling();
+        }
+    }, 2000);
+}
+
+// ===== 页面加载完成后启动 =====
+window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

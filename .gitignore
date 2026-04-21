@@ -1,0 +1,73 @@
+# ===== 操作系统 =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== IDE / 编辑器 =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== 依赖 / 构建 =====
+node_modules/
+vendor/
+dist/
+build/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/
+.jekyll-cache/
+_site/
+public/dist/
+
+# ===== 环境变量与敏感配置 =====
+.env
+.env.local
+.env.*.local
+!.env.example
+config.local.js
+*.secret
+*.key
+*.pem
+
+# ===== 日志与临时文件 =====
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ===== 内容生成 / 草稿 =====
+drafts/
+_drafts/
+*.draft.md
+TODO.md
+NOTE.md
+PRIVATE_*
+
+# ===== 图片资源（可选，如果图片很大或用图床）=====
+# 如果图片存在仓库里，注释掉这行
+# assets/images/
+# uploads/
+
+# ===== 数据库 / 本地数据 =====
+*.db
+*.sqlite
+*.sqlite3
+data.json
+local-data/
+
+# ===== 评论数据 / 用户生成内容（如果用静态评论）=====
+comments.json
+guestbook.json
+
+# ===== 部署相关 =====
+.deploy*/
+.deploy_git*/
+.vercel
+.netlify
